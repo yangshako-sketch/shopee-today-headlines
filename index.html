@@ -140,9 +140,13 @@ body{font-family:var(--font);background:var(--bg);color:var(--text-primary);line
 .upload-card .card-header-right{display:flex;gap:8px}
 .upload-body{padding:20px 26px 24px}
 .upload-tip{font-size:13px;color:var(--text-secondary);line-height:1.8;margin-bottom:14px}
-.upload-drop{border:2px dashed var(--border);border-radius:var(--radius-md);padding:22px 16px;text-align:center;cursor:pointer;transition:all var(--transition);background:var(--border-light)}
-.upload-drop:hover,.upload-drop.drag{border-color:var(--accent);background:rgba(102,126,234,.06)}
+.upload-drop{border:2px dashed var(--border);border-radius:var(--radius-md);padding:22px 16px;text-align:center;cursor:pointer;transition:all var(--transition);background:var(--border-light);position:relative}
+.upload-drop:hover,.upload-drop.drag{border-color:#667eea;background:rgba(102,126,234,.06)}
 .upload-drop .ud-ico{font-size:30px}
+.upload-toolbar{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:14px}
+.upload-tok-btn{border:1px solid var(--border);background:var(--surface);color:var(--text-secondary);font-family:var(--font);font-size:12.5px;font-weight:600;padding:6px 14px;border-radius:99px;cursor:pointer;transition:all var(--transition)}
+.upload-tok-btn:hover{border-color:#667eea;color:#667eea;background:#fff}
+.upload-tok-hint{font-size:12px;color:var(--text-muted)}
 .upload-drop .ud-title{font-size:14px;font-weight:700;margin-top:6px}
 .upload-drop .ud-sub{font-size:12px;color:var(--text-muted);margin-top:3px}
 .upload-board-row{margin-top:16px;padding-top:14px;border-top:1px dashed var(--border)}
@@ -284,6 +288,10 @@ body{font-family:var(--font);background:var(--bg);color:var(--text-primary);line
   </div>
   <div class="upload-body">
     <p class="upload-tip">支持 PDF / Word / 图片（含截图）。文件将存入你的 GitHub 仓库 <code>data/uploads/</code>，供每日自动解析、生成历史佣金对比。仅你本机输入的 Token 可见，不会公开到页面源码。</p>
+    <div class="upload-toolbar">
+      <button type="button" class="upload-tok-btn" id="btnSetToken">🔑 设置/重置 GitHub Token</button>
+      <span class="upload-tok-hint">没有 Token 时，首次上传会弹出输入框</span>
+    </div>
     <div class="upload-board-row"><a class="upload-board-link" href="https://4b6a47233a1f408e829109970ddafa6e.app.workbuddy.link" target="_blank" rel="noopener">📊 打开独立政策看板（每日自动巡检推送）</a></div>
     <div class="upload-drop" id="uploadDrop">
       <div class="ud-ico">📤</div>
@@ -460,7 +468,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text-primary);line
 
 <footer class="app-footer">
   <div>本页为 <b>独立页面</b>，与「每周赋能头条 / index.html」互不干扰，数据源为当日已核验的真实公开资讯（DNY123 跨境早报、亿邦动力等）。</div>
-  <div>收录规则：仅 2026年08月22日 当日发布、与 Shopee 平台及对应站点强相关；链接均为原始来源，<b>绝不编造或补凑旧闻</b>。生成于 2026-08-22 10:25。</div>
+  <div>收录规则：仅 2026年08月22日 当日发布、与 Shopee 平台及对应站点强相关；链接均为原始来源，<b>绝不编造或补凑旧闻</b>。生成于 2026-08-22 11:27。</div>
   <div>👍/👎 标记与偏好记忆默认仅保存在你本机浏览器；点「🎯 我的偏好 → 同步到看板」可导出 user_prefs.json，让每日自动抓取与钉钉推送也参考你的偏好。</div>
 </footer>
 <script>
@@ -591,14 +599,14 @@ body{font-family:var(--font);background:var(--bg);color:var(--text-primary);line
   function getList(){try{return JSON.parse(localStorage.getItem(LIST_KEY)||'[]')||[]}catch(e){return[]}}
   function setList(a){localStorage.setItem(LIST_KEY,JSON.stringify(a));}
   function fmtSize(b){return b>1048576?(b/1048576).toFixed(1)+'MB':(b>1024?(b/1024).toFixed(0)+'KB':b+'B');}
-  function esc(s){return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+  function esc(s){return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
   function icon(name){var e=(name.split('.').pop()||'').toLowerCase();return e==='pdf'?'📄':(e==='doc'||e==='docx')?'📝':(e==='png'||e==='jpg'||e==='jpeg'||e==='webp')?'🖼️':'📎';}
   function renderList(){
     var box=document.getElementById('uploadList'); if(!box)return;
     var list=getList();
-    if(!list.length){box.innerHTML='<div class=\"upload-empty\">还没有上传文件。上传后这里会显示历史档案，供每日自动对比佣金/费率变化。</div>';return;}
+    if(!list.length){box.innerHTML='<div class="upload-empty">还没有上传文件。上传后这里会显示历史档案，供每日自动对比佣金/费率变化。</div>';return;}
     box.innerHTML=list.map(function(f){
-      return '<div class=\"upload-item\"><span class=\"ui-ico\">'+icon(f.name)+'</span><span class=\"ui-name\" title=\""+esc(f.name)+'\">'+esc(f.name)+'</span><span class=\"ui-meta\">'+fmtSize(f.size)+(f.time?' · '+f.time:'')+'</span><button class=\"ui-del\" data-name=\""+esc(f.name)+'\">删除</button></div>';
+      return '<div class="upload-item"><span class="ui-ico">'+icon(f.name)+'</span><span class="ui-name" title="'+esc(f.name)+'">'+esc(f.name)+'</span><span class="ui-meta">'+fmtSize(f.size)+(f.time?' · '+f.time:'')+'</span><button class="ui-del" data-name="'+esc(f.name)+'">删除</button></div>';
     }).join('');
   }
   function setStatus(msg,cls){var s=document.getElementById('uploadStatus'); if(!s)return; s.textContent=msg||''; s.className='upload-status'+(cls?(' '+cls):'');}
@@ -635,12 +643,14 @@ body{font-family:var(--font);background:var(--bg);color:var(--text-primary);line
   }
   var drop=document.getElementById('uploadDrop'), input=document.getElementById('uploadInput');
   if(drop&&input){
-    drop.addEventListener('click',function(){input.click();});
+    drop.addEventListener('click',function(e){if(e.target.closest('.ui-del'))return; input.click();});
     drop.addEventListener('dragover',function(e){e.preventDefault();drop.classList.add('drag');});
     drop.addEventListener('dragleave',function(){drop.classList.remove('drag');});
     drop.addEventListener('drop',function(e){e.preventDefault();drop.classList.remove('drag');Array.prototype.forEach.call(e.dataTransfer.files,uploadOne);});
     input.addEventListener('change',function(){Array.prototype.forEach.call(input.files,uploadOne);input.value='';});
   }
+  var tokBtn=document.getElementById('btnSetToken');
+  if(tokBtn) tokBtn.addEventListener('click',function(e){e.stopPropagation(); var t=prompt('请输入你的 GitHub Personal Access Token（需 repo 权限，仅存本机浏览器，不公开）：'); if(!t) return; setTok(t.trim()); setStatus('Token 已保存到本机浏览器，可点击上传区选择文件','ok');});
   document.addEventListener('click',function(e){var b=e.target.closest('.ui-del');if(!b)return;var n=b.getAttribute('data-name');var l=getList().filter(function(f){return f.name!==n;});setList(l);renderList();setStatus('已移除本地记录：'+n+'（仓库内文件需手动删除）');});
   renderList();
 })();
